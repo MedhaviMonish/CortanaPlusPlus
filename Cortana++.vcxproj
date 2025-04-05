@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseLayer.h" />
+    <ClInclude Include="Tensor.h" />
     <ClInclude Include="WeightAndBiasInitializer.h" />
   </ItemGroup>
   <ItemGroup>
