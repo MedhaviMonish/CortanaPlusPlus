@@ -82,12 +82,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BaseLayer.h" />
+    <ClInclude Include="doctest.h" />
     <ClInclude Include="Tensor.h" />
     <ClInclude Include="WeightAndBiasInitializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BaseLayer.cpp" />
+    <ClCompile Include="test_tensor.cpp" />
     <ClCompile Include="WeightAndBiasInitializer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
