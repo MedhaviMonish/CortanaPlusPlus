@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#define MAX_PRINT_THRESHOLD 1000
+#define MIN_PRINT_THRESHOLD 6
 
 template <typename T>
 class Tensor
@@ -17,6 +20,8 @@ class Tensor
 
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
+    std::string print();
+    std::string print(std::string tensorStr, int *dimCummulative, int dimIndex);
 
     T *getData()
     {
@@ -110,4 +115,73 @@ Tensor<T>::~Tensor()
 {
     delete[] data;
     delete[] shape;
+}
+
+template <typename T>
+std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dimIndex)
+{
+    if (dimIndex > this->dims)
+    {
+        return "";
+    }
+    else if (this->total_size <= MAX_PRINT_THRESHOLD)
+    {
+        tensorStr += "[";
+        for (int i = 0; i < this->shape[dimIndex]; i++)
+        {
+            if (dimIndex == this->dims - 1)
+            {
+                tensorStr += std::to_string(this->data[i]);
+                if (i != this->shape[dimIndex] - 1)
+                {
+                    tensorStr += ", ";
+                }
+            }
+            else
+            {
+                tensorStr = this->print(tensorStr, dimCummulative, dimIndex + 1);
+                if (i != this->shape[dimIndex] - 1)
+                {
+                    tensorStr += ",\n";
+                }
+            }
+        }
+        tensorStr += "]";
+        if (dimIndex != this->dims - 1)
+        {
+            tensorStr += "\n";
+        }
+    }
+    else
+    {
+        if (this->shape[dimIndex] < MIN_PRINT_THRESHOLD)
+        {
+            tensorStr += "[";
+            for (int i = 0; i < this->shape[dimIndex]; i++)
+            {
+                if (dimIndex == this->dims - 1)
+                {
+                    tensorStr += std::to_string(this->data[i]) + ", ";
+                }
+                else
+                {
+                }
+            }
+            tensorStr += "]";
+        }
+    }
+    return tensorStr;
+}
+template <typename T>
+std::string Tensor<T>::print()
+{
+    int *dimCummulative = new int[this->dims];
+    int aggregate = 1;
+    for (int i = this->dims - 1; i >= 0; --i)
+    {
+        aggregate *= this->shape[i];
+        dimCummulative[i] = aggregate;
+    }
+    std::string tensorStr = "";
+    return print(tensorStr, dimCummulative, 0);
 }
