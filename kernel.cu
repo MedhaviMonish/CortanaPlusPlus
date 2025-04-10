@@ -17,7 +17,7 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 
 int main()
 {
-    int shape1[] = {20, 20, 40};
+    int shape1[] = {220, 5, 4};
     Tensor<int> array1 = Tensor<int>::getOnes(shape1, 3);
     cout << array1.getTotalSize() << endl;
     cout << array1.getData()[2] << endl;

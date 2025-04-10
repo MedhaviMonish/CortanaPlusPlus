@@ -21,7 +21,7 @@ class Tensor
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
     std::string print();
-    std::string print(std::string tensorStr, int *dimCummulative, int dimIndex);
+    std::string print(std::string tensorStr, int dimIndex);
 
     T *getData()
     {
@@ -118,7 +118,7 @@ Tensor<T>::~Tensor()
 }
 
 template <typename T>
-std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dimIndex)
+std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
 {
     if (dimIndex > this->dims)
     {
@@ -139,7 +139,7 @@ std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dim
             }
             else
             {
-                tensorStr = this->print(tensorStr, dimCummulative, dimIndex + 1);
+                tensorStr = this->print(tensorStr, dimIndex + 1);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ",\n";
@@ -155,6 +155,7 @@ std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dim
     else
     {
         tensorStr += "[";
+        bool adddedDot = 0;
         for (int i = 0; i < this->shape[dimIndex]; i++)
         {
             if (dimIndex == this->dims - 1)
@@ -164,20 +165,23 @@ std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dim
                 {
                     tensorStr += ", ";
                 }
-                if (i == (MIN_PRINT_THRESHOLD / 2) - 1)
+                if (this->shape[dimIndex] > MIN_PRINT_THRESHOLD && !adddedDot &&
+                    i == (MIN_PRINT_THRESHOLD / 2) - 1)
                 {
+                    adddedDot = 1;
                     i = this->shape[dimIndex] - 4;
                     tensorStr += "...";
                 }
             }
             else
             {
-                tensorStr = this->print(tensorStr, dimCummulative, dimIndex + 1);
+                tensorStr = this->print(tensorStr, dimIndex + 1);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ",\n";
                 }
-                if (i == (MIN_PRINT_THRESHOLD / 2) - 1)
+                if (this->shape[dimIndex] > MIN_PRINT_THRESHOLD &&
+                    i == (MIN_PRINT_THRESHOLD / 2) - 1)
                 {
                     i = this->shape[dimIndex] - 4;
                     tensorStr += "\n...\n";
@@ -195,13 +199,6 @@ std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dim
 template <typename T>
 std::string Tensor<T>::print()
 {
-    int *dimCummulative = new int[this->dims];
-    int aggregate = 1;
-    for (int i = this->dims - 1; i >= 0; --i)
-    {
-        aggregate *= this->shape[i];
-        dimCummulative[i] = aggregate;
-    }
     std::string tensorStr = "";
-    return print(tensorStr, dimCummulative, 0);
+    return print(tensorStr, 0);
 }
