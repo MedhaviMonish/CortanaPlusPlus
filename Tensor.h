@@ -154,20 +154,40 @@ std::string Tensor<T>::print(std::string tensorStr, int *dimCummulative, int dim
     }
     else
     {
-        if (this->shape[dimIndex] < MIN_PRINT_THRESHOLD)
+        tensorStr += "[";
+        for (int i = 0; i < this->shape[dimIndex]; i++)
         {
-            tensorStr += "[";
-            for (int i = 0; i < this->shape[dimIndex]; i++)
+            if (dimIndex == this->dims - 1)
             {
-                if (dimIndex == this->dims - 1)
+                tensorStr += std::to_string(this->data[i]);
+                if (i != this->shape[dimIndex] - 1)
                 {
-                    tensorStr += std::to_string(this->data[i]) + ", ";
+                    tensorStr += ", ";
                 }
-                else
+                if (i == (MIN_PRINT_THRESHOLD / 2) - 1)
                 {
+                    i = this->shape[dimIndex] - 4;
+                    tensorStr += "...";
                 }
             }
-            tensorStr += "]";
+            else
+            {
+                tensorStr = this->print(tensorStr, dimCummulative, dimIndex + 1);
+                if (i != this->shape[dimIndex] - 1)
+                {
+                    tensorStr += ",\n";
+                }
+                if (i == (MIN_PRINT_THRESHOLD / 2) - 1)
+                {
+                    i = this->shape[dimIndex] - 4;
+                    tensorStr += "\n...\n";
+                }
+            }
+        }
+        tensorStr += "]";
+        if (dimIndex != this->dims - 1)
+        {
+            tensorStr += "\n";
         }
     }
     return tensorStr;
