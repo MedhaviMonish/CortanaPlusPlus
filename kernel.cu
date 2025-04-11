@@ -17,10 +17,22 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 
 int main()
 {
-    int shape1[] = {220, 5, 4};
-    Tensor<int> array1 = Tensor<int>::getOnes(shape1, 3);
+    int shape1[] = {1001, 5, 10001};
+    int dims = 3;
+    int *array = nullptr;
+    int total = 1;
+    for (int i = 0; i < dims; ++i)
+    {
+        total *= shape1[i];
+    }
+    array = new int[total];
+    for (int i = 0; i < total; ++i)
+    {
+        array[i] = i + 1;
+    }
+
+    Tensor<int> array1 = Tensor<int>(array, shape1, dims);
     cout << array1.getTotalSize() << endl;
-    cout << array1.getData()[2] << endl;
     cout << "Print" << endl;
     cout << array1.print();
     return 0;

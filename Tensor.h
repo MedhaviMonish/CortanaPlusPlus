@@ -21,7 +21,7 @@ class Tensor
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
     std::string print();
-    std::string print(std::string tensorStr, int dimIndex);
+    std::string print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX);
 
     T *getData()
     {
@@ -118,7 +118,7 @@ Tensor<T>::~Tensor()
 }
 
 template <typename T>
-std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
+std::string Tensor<T>::print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX)
 {
     if (dimIndex > this->dims)
     {
@@ -131,7 +131,7 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
         {
             if (dimIndex == this->dims - 1)
             {
-                tensorStr += std::to_string(this->data[i]);
+                tensorStr += std::to_string(this->data[INDEX + i]);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ", ";
@@ -139,11 +139,12 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
             }
             else
             {
-                tensorStr = this->print(tensorStr, dimIndex + 1);
+                tensorStr = this->print(tensorStr, dimIndex + 1, dimCummulative, INDEX);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ",\n";
                 }
+                INDEX += dimCummulative[dimIndex];
             }
         }
         tensorStr += "]";
@@ -160,7 +161,7 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
         {
             if (dimIndex == this->dims - 1)
             {
-                tensorStr += std::to_string(this->data[i]);
+                tensorStr += std::to_string(this->data[INDEX + i]);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ", ";
@@ -175,7 +176,7 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
             }
             else
             {
-                tensorStr = this->print(tensorStr, dimIndex + 1);
+                tensorStr = this->print(tensorStr, dimIndex + 1, dimCummulative, INDEX);
                 if (i != this->shape[dimIndex] - 1)
                 {
                     tensorStr += ",\n";
@@ -186,6 +187,7 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
                     i = this->shape[dimIndex] - 4;
                     tensorStr += "\n...\n";
                 }
+                INDEX += dimCummulative[dimIndex];
             }
         }
         tensorStr += "]";
@@ -199,6 +201,14 @@ std::string Tensor<T>::print(std::string tensorStr, int dimIndex)
 template <typename T>
 std::string Tensor<T>::print()
 {
+    int *dimCummulative = new int[this->dims];
+    dimCummulative[this->dims - 1] = 0;
+    int aggregate = this->shape[this->dims - 1];
+    for (int i = this->dims - 2; i >= 0; --i)
+    {
+        dimCummulative[i] = aggregate;
+        aggregate *= this->shape[i];
+    }
     std::string tensorStr = "";
-    return print(tensorStr, 0);
+    return print(tensorStr, 0, dimCummulative, 0);
 }
