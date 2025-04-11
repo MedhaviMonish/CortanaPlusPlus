@@ -40,24 +40,9 @@ class Tensor
         return total_size;
     }
 };
-template <typename T>
-Tensor<T>::Tensor(const Tensor &other)
-{
-    this->dims = other.dims;
-    this->total_size = other.total_size;
-    this->shape = new int[this->dims];
-    this->data = new T[this->total_size];
 
-    for (int i = 0; i < this->dims; ++i)
-    {
-        this->shape[i] = other.shape[i];
-    }
+// Constructor
 
-    for (int i = 0; i < this->total_size; ++i)
-    {
-        this->data[i] = other.data[i];
-    }
-}
 template <typename T>
 Tensor<T>::Tensor(T *data, int *shape, int dims)
 {
@@ -92,6 +77,8 @@ Tensor<T>::Tensor(int *shape, int dims)
     this->data = new T[this->total_size];
 }
 
+// Function to initialize Tensor
+
 template <typename T>
 Tensor<T> Tensor<T>::getOnes(int *shape, int dims)
 {
@@ -110,12 +97,37 @@ Tensor<T> Tensor<T>::getZeroes(int *shape, int dims)
     return tensor;
 }
 
+// Copy Constructor
+
+template <typename T>
+Tensor<T>::Tensor(const Tensor &other)
+{
+    this->dims = other.dims;
+    this->total_size = other.total_size;
+    this->shape = new int[this->dims];
+    this->data = new T[this->total_size];
+
+    for (int i = 0; i < this->dims; ++i)
+    {
+        this->shape[i] = other.shape[i];
+    }
+
+    for (int i = 0; i < this->total_size; ++i)
+    {
+        this->data[i] = other.data[i];
+    }
+}
+
+// Desctructor
+
 template <typename T>
 Tensor<T>::~Tensor()
 {
     delete[] data;
     delete[] shape;
 }
+
+// Function to pretty print tensor
 
 template <typename T>
 std::string Tensor<T>::print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX)
