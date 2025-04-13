@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-    int shape[] = {5, 100, 200};
+    int shape[] = {5000, 200, 500};
     int dims = 3;
     int *array = nullptr;
     int total = 1;
@@ -20,6 +20,9 @@ int main()
         array[i] = i + 1;
     }
     Tensor<int> array1 = Tensor<int>(array, shape, dims);
+    cout << array1.print();
+    cout << array1.getData()[array1.getTotalSize() - 1];
+
     Tensor<int> array2 = Tensor<int>::getOnes(shape, dims);
     cout << "Print" << endl;
     cout << array1.getTotalSize() << endl;
