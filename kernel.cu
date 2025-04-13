@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-    int shape[] = {500, 505, 200};
+    int shape[] = {5, 100, 200};
     int dims = 3;
     int *array = nullptr;
     int total = 1;

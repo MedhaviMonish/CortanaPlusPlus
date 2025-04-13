@@ -1,9 +1,12 @@
 #pragma once
 #include "TensorKernels.cuh"
+#include <chrono>
 #include <iostream>
 #include <string>
 #define MAX_PRINT_THRESHOLD 1000
 #define MIN_PRINT_THRESHOLD 6
+#define THREADS_PER_BLOCK 256
+#define MAX_MEMORY_USAGE_BYTES 1024
 
 template <typename T>
 class Tensor
@@ -293,11 +296,15 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
     {
         throw std::invalid_argument("cudaMemcpy failed!");
     }
+    auto start = std::chrono::high_resolution_clock::now();
 
-    launchAddKernel<T>(device_tensor_C, device_tensor_A, device_tensor_B, 100);
+    dim3 thread_per_blocks(THREADS_PER_BLOCK);
+    dim3 thread_blocks((this->total_size / THREADS_PER_BLOCK) + 1);
+
+    launchAddKernel<T>(device_tensor_C, device_tensor_A, device_tensor_B, thread_blocks,
+                       thread_per_blocks, this->total_size);
 
     cudaStatus = cudaGetLastError();
-    std::cout << "Before LastError " << cudaStatus << endl;
     if (cudaStatus != cudaSuccess)
     {
         throw std::invalid_argument("addKernel launch failed:  ");
@@ -306,7 +313,10 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
     // cudaDeviceSynchronize waits for the kernel to finish, and returns
     // any errors encountered during the launch.
     cudaStatus = cudaDeviceSynchronize();
-    std::cout << "After sync" << endl;
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+
+    std::cout << "Time taken: " << duration.count() << " ms" << endl;
     if (cudaStatus != cudaSuccess)
     {
         throw std::invalid_argument(
