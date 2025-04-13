@@ -1,4 +1,6 @@
 #pragma once
+#include "TensorKernels.cuh"
+#include <iostream>
 #include <string>
 #define MAX_PRINT_THRESHOLD 1000
 #define MIN_PRINT_THRESHOLD 6
@@ -22,6 +24,7 @@ class Tensor
     static Tensor<T> getZeroes(int *shape, int dims);
     std::string print();
     std::string print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX);
+    Tensor<T> operator+(const Tensor<T> &other);
 
     T *getData()
     {
@@ -223,4 +226,103 @@ std::string Tensor<T>::print()
     }
     std::string tensorStr = "";
     return print(tensorStr, 0, dimCummulative, 0);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
+{
+    if (this->dims != other.dims || this->total_size != other.total_size)
+    {
+        throw std::invalid_argument("Shape/Size mismatch for tensor addition.");
+    }
+
+    for (int i = 0; i < this->dims; ++i)
+    {
+        if (this->shape[i] != other.shape[i])
+        {
+            throw std::invalid_argument(
+                "Shape mismatch: Tensors must have the same shape to perform first operation.");
+        }
+    }
+
+    T *device_tensor_A = nullptr;
+    T *device_tensor_B = nullptr;
+    T *device_tensor_C = nullptr;
+    T *host_data = new T[this->total_size];
+
+    cudaError_t cudaStatus;
+
+    // Choosing first GPU to run.
+    cudaStatus = cudaSetDevice(0);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+    }
+
+    // Allocate GPU buffers for three vectors (two input, one output)    .
+    cudaStatus = cudaMalloc((void **)&device_tensor_A, this->total_size * sizeof(T));
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMalloc failed!");
+    }
+
+    cudaStatus = cudaMalloc((void **)&device_tensor_B, other.total_size * sizeof(T));
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMalloc failed!");
+    }
+
+    cudaStatus = cudaMalloc((void **)&device_tensor_C, this->total_size * sizeof(T));
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMalloc failed!");
+    }
+
+    // Copy input vectors from host memory to GPU buffers.
+    cudaStatus = cudaMemcpy(device_tensor_A, this->data, this->total_size * sizeof(T),
+                            cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMemcpy failed!");
+    }
+
+    cudaStatus = cudaMemcpy(device_tensor_B, other.data, other.total_size * sizeof(T),
+                            cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMemcpy failed!");
+    }
+
+    launchAddKernel<T>(device_tensor_C, device_tensor_A, device_tensor_B, 100);
+
+    cudaStatus = cudaGetLastError();
+    std::cout << "Before LastError " << cudaStatus << endl;
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("addKernel launch failed:  ");
+    }
+
+    // cudaDeviceSynchronize waits for the kernel to finish, and returns
+    // any errors encountered during the launch.
+    cudaStatus = cudaDeviceSynchronize();
+    std::cout << "After sync" << endl;
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaDeviceSynchronize returned error after launching addKernel!");
+    }
+
+    // Copy output vector from GPU buffer to host memory.
+    cudaStatus = cudaMemcpy(host_data, device_tensor_C, this->total_size * sizeof(T),
+                            cudaMemcpyDeviceToHost);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMemcpy failed!");
+    }
+    cudaFree(device_tensor_A);
+    cudaFree(device_tensor_B);
+    cudaFree(device_tensor_C);
+
+    return Tensor<T>(host_data, this->shape, this->dims);
 }
