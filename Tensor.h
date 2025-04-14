@@ -26,8 +26,11 @@ class Tensor
 
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
+    static Tensor<T> matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B);
+
     std::string print();
     std::string print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX);
+    void reshape(int *newShape, int newDims);
     Tensor<T> operator+(const Tensor<T> &other);
 
     T *getData()
@@ -136,6 +139,33 @@ Tensor<T>::~Tensor()
 }
 
 // Function to pretty print tensor
+
+template <typename T>
+void Tensor<T>::reshape(int *newShape, int newDims)
+{
+    int tmpTotalSize = 1;
+    for (int i = 0; i < newDims; ++i)
+    {
+        tmpTotalSize *= newShape[i];
+    }
+    if (tmpTotalSize == this->total_size)
+    {
+        if (this->shape != nullptr)
+        {
+            delete[] this->shape;
+        }
+        this->shape = new int[newDims];
+        for (int i = 0; i < newDims; ++i)
+        {
+            this->shape[i] = newShape[i];
+        }
+        this->dims = newDims;
+    }
+    else
+    {
+        throw std::invalid_argument("New shape has different length than actual data.");
+    }
+}
 
 template <typename T>
 std::string Tensor<T>::print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX)
@@ -349,4 +379,18 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
     }
 
     return Tensor<T>(host_data, this->shape, this->dims);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B)
+{
+
+    if (tensor_A.dims == tensor_B.dims)
+    {
+        throw std::invalid_argument("Shape/Size mismatch for tensor addition.");
+    }
+    if (tensor_A.shape[tensor_A.dims - 1] == tensor_B.shape[0])
+    {
+        throw std::invalid_argument("First and Last dimension mismatch for Tensor MatMul.");
+    }
 }
