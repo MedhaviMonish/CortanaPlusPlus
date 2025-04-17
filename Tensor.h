@@ -58,7 +58,7 @@ class Tensor
 template <typename T>
 Tensor<T>::Tensor(T *data, int *shape, int dims)
 {
-    std::cout << "3 param constructor was called" << endl;
+    // std::cout << "3 param constructor was called" << endl;
     this->dims = dims;
     this->shape = new int[this->dims];
     this->total_size = 1;
@@ -72,13 +72,14 @@ Tensor<T>::Tensor(T *data, int *shape, int dims)
     {
         this->data[i] = data[i];
     }
-    std::cout << "3 array" << this->total_size << "  " << this->data[this->total_size - 1] << endl;
+    // std::cout << "3 array" << this->total_size << "  " << this->data[this->total_size - 1] <<
+    // endl;
 }
 
 template <typename T>
 Tensor<T>::Tensor(int *shape, int dims)
 {
-    std::cout << "2 param constructor was called" << endl;
+    // std::cout << "2 param constructor was called" << endl;
     this->dims = dims;
     this->shape = new int[this->dims];
     this->total_size = 1;
@@ -425,7 +426,7 @@ Tensor<T> Tensor<T>::operator+(T value)
     }
 
     int SUB_TOTAL_SIZE = (MAX_MEMORY_USAGE_BYTES) / sizeof(T);
-    std::cout << "MAX Subtotal size at start based on data type " << SUB_TOTAL_SIZE << endl;
+    // std::cout << "MAX Subtotal size at start based on data type " << SUB_TOTAL_SIZE << endl;
     int i = 0;
     while (i < this->total_size)
     {
@@ -433,7 +434,7 @@ Tensor<T> Tensor<T>::operator+(T value)
         {
             SUB_TOTAL_SIZE = this->total_size - i;
         }
-        std::cout << "Subtotal size " << SUB_TOTAL_SIZE << endl;
+        // std::cout << "Subtotal size " << SUB_TOTAL_SIZE << endl;
 
         cudaStatus = cudaMalloc((void **)&device_tensor_A, SUB_TOTAL_SIZE * sizeof(T));
         if (cudaStatus != cudaSuccess)
@@ -543,10 +544,10 @@ Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B
         throw std ::invalid_argument("Data copy failed for tensor_B");
     }
 
-    dim3 thread_per_blocks(THREADS_PER_BLOCK);
-    dim3 thread_blocks((tensor_A.shape[0] * tensor_B.total_size / THREADS_PER_BLOCK) + 1);
+    dim3 thread_per_blocks(tensor_A.shape[0]);
+    dim3 thread_blocks(tensor_B.shape[0], tensor_B.shape[1]);
     launchMatMulKernel<T>(device_tensor_A, device_tensor_B, device_tensor_Mul, thread_blocks,
-                          THREADS_PER_BLOCK, tensor_A.shape[0] * tensor_B.total_size);
+                          thread_per_blocks);
 
     cudaStatus = cudaGetLastError();
     if (cudaStatus != cudaSuccess)
@@ -554,8 +555,8 @@ Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B
         throw std::invalid_argument("addKernel launch failed:  ");
     }
 
-    // cudaDeviceSynchronize waits for the kernel to finish, and returns
-    // any errors encountered during the launch.
+    // cudaDeviceSynchronize waits for the kernel to finish, and returns any errors encountered
+    // during the launch.
     cudaStatus = cudaDeviceSynchronize();
 
     if (cudaStatus != cudaSuccess)

@@ -34,18 +34,16 @@ void launchAddScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T v
 }
 
 template <typename T>
-__global__ void matMulKernel(const T *a, const T *b, T *c, int N)
+__global__ void matMulKernel(const T *a, const T *b, T *c)
 {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    if (i < N)
-    {
-        c[i] = a[i] * b[i];
-    }
+    int i = blockIdx.y;                              // all columns of input A
+    int j = blockIdx.x * gridDim.y + blockIdx.y;     // all elements of B
+    int k = threadIdx.x * gridDim.x * gridDim.y + j; // for each input row
+    c[k] = a[i] * b[j];
 }
 
 template <typename T>
-void launchMatMulKernel(const T *a, const T *b, T *c, dim3 thread_blocks, dim3 thread_per_blocks,
-                        int total_size)
+void launchMatMulKernel(const T *a, const T *b, T *c, dim3 thread_blocks, dim3 thread_per_blocks)
 {
-    matMulKernel<T><<<thread_blocks, thread_per_blocks>>>(a, b, c, total_size);
+    matMulKernel<T><<<thread_blocks, thread_per_blocks>>>(a, b, c);
 }
