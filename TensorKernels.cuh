@@ -36,7 +36,15 @@ void launchAddScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T v
 template <typename T>
 __global__ void matMulKernel(const T *a, const T *b, T *c)
 {
-    int i = threadIdx.x * gridDim.y + blockIdx.y;    // all columns of input A
+    // Custom CUDA kernel for broadcasted elementwise matmul without loops
+    // Launches 1 block per (weight_row, feature) and 1 thread per input row
+    // Computes C[i][j][f] = A[i][f] * B[j][f] with flat memory layout
+    // i: input row index (threadIdx.x) — selects each input sample
+    // j: weight row index (blockIdx.x) — selects each row of the weight matrix
+    // k: feature column index (blockIdx.y) — selects each feature column
+    // a[i]: refers to A[i][k] — value from input row at feature k
+    // b[j]: refers to B[j][k] — value from weight row at feature k
+    int i = threadIdx.x * gridDim.y + blockIdx.y;    // all rows of input A
     int j = blockIdx.x * gridDim.y + blockIdx.y;     // all elements of B
     int k = threadIdx.x * gridDim.x * gridDim.y + j; // for each input row
     c[k] = a[i] * b[j];
