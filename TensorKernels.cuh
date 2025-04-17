@@ -36,7 +36,7 @@ void launchAddScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T v
 template <typename T>
 __global__ void matMulKernel(const T *a, const T *b, T *c)
 {
-    int i = blockIdx.y;                              // all columns of input A
+    int i = threadIdx.x * gridDim.y + blockIdx.y;    // all columns of input A
     int j = blockIdx.x * gridDim.y + blockIdx.y;     // all elements of B
     int k = threadIdx.x * gridDim.x * gridDim.y + j; // for each input row
     c[k] = a[i] * b[j];

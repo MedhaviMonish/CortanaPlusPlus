@@ -6,19 +6,12 @@ using namespace std;
 
 int main()
 { // ======== Test Input Setup for Broadcasted Elementwise MatMul ========
-    int shape_input[] = {4, 15};
-    int data_input[60] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1,
-                          1, 1, 2, 2, 3, 3, 4, 4, 5, 5,  0,  1, 0, 1, 0, 1, 0, 1, 0, 1,
-                          9, 8, 7, 6, 5, 4, 3, 2, 1, 0,  0,  0, 1, 1, 2, 2, 3, 3, 4, 4};
+    int shape_input[] = {2, 6};
+    int data_input[12] = {1, 3, 5, 7, 9, 11, 2, 4, 6, 8, 10, 12};
     Tensor<int> array1(data_input, shape_input, 2);
 
-    int shape_weights[] = {8, 15};
-    int data_weights[120] = {
-        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-        0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1,
-    };
+    int shape_weights[] = {3, 6};
+    int data_weights[18] = {1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 2, 2, 2, 2, 2, 2};
     Tensor<int> array2(data_weights, shape_weights, 2);
 
     // Perform broadcasted matmul
