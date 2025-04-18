@@ -27,6 +27,7 @@ class Tensor
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
     static Tensor<T> matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B);
+    static Tensor<T> reduceSumLastAxis(const Tensor<T> &tensor);
 
     std::string print();
     std::string print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX);
@@ -580,4 +581,164 @@ Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B
 
     int shape[] = {tensor_A.shape[0], tensor_B.shape[0], tensor_B.shape[1]};
     return Tensor<T>(host_matmul_data, shape, 3);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::reduceSumLastAxis(const Tensor<T> &tensor)
+{
+    int total_size = tensor.total_size;
+    int dimCummulative = 1;
+    int *newShape = new int[tensor.dims - 1];
+    for (int i = 0; i < tensor.dims - 1; ++i)
+    {
+        dimCummulative *= tensor.shape[i];
+        newShape[i] = tensor.shape[i];
+    }
+    std::cout << "Size before last dim " << dimCummulative << endl;
+
+    int currentLastShape = tensor.shape[tensor.dims - 1];
+    int THREADS = 4;
+    int STRIDE = 2;
+
+    if (((currentLastShape / STRIDE) + 1) > 1024)
+    {
+        THREADS = THREADS; // If based on this stride, threads are needed moore than 1024 then limit
+                           // it to specified number as it is
+        STRIDE = currentLastShape / THREADS;
+    }
+    else
+    {
+        // Now its less than 1024. lets check if we really need this much
+        // Stride should be greater than 256
+        if (((currentLastShape / THREADS) + 1) < 256)
+        {
+            STRIDE = 256;
+            THREADS = (currentLastShape / STRIDE) + 1;
+        }
+    }
+
+    int reducedLastDimShape = THREADS;
+    T *reducedSum = new T[dimCummulative];
+    T *deviceTensor = nullptr;
+    T *deviceReducedSum = nullptr;
+    cudaError_t cudaStatus;
+
+    cudaStatus = cudaSetDevice(0);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+    }
+
+    cudaStatus = cudaMalloc((void **)&deviceTensor, total_size * sizeof(T));
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("Memory allocation failed for tensor");
+    }
+
+    cudaStatus =
+        cudaMalloc((void **)&deviceReducedSum, dimCummulative * reducedLastDimShape * sizeof(T));
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("Memory allocation failed for tensor");
+    }
+
+    cudaStatus = cudaMemcpy(deviceTensor, tensor.data, tensor.total_size * sizeof(T),
+                            cudaMemcpyHostToDevice);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std ::invalid_argument("Data copy failed for tensor_A");
+    }
+
+    dim3 thread_per_blocks(THREADS);
+    dim3 thread_blocks(dimCummulative);
+    launchReduceSumLastAxisKernel<T>(deviceTensor, deviceReducedSum, thread_blocks,
+                                     thread_per_blocks, STRIDE, currentLastShape);
+
+    cudaStatus = cudaGetLastError();
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("addKernel launch failed:  ");
+    }
+
+    // cudaDeviceSynchronize waits for the kernel to finish, and returns any errors encountered
+    // during the launch.
+    cudaStatus = cudaDeviceSynchronize();
+
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaDeviceSynchronize returned error after launching addKernel!");
+    }
+
+    cudaFree(deviceTensor);
+
+    while (reducedLastDimShape > 1)
+    {
+        THREADS = 4;
+        STRIDE = 2;
+
+        // Using the last Dim of intermediate sum results
+        if (((reducedLastDimShape / STRIDE) + 1) > 1024)
+        {
+            THREADS = THREADS; // If based on this stride, threads are needed moore than 1024 then
+                               // limit it to specified number as it is
+            STRIDE = reducedLastDimShape / THREADS;
+        }
+        else
+        {
+            // Now its less than 1024. lets check if we really need this much
+            // Stride should be greater than 256
+            if (((reducedLastDimShape / THREADS) + 1) < 256)
+            {
+                STRIDE = 256;
+                THREADS = (reducedLastDimShape / STRIDE) + 1;
+            }
+        }
+
+        reducedLastDimShape = THREADS;
+        deviceTensor = deviceReducedSum;
+
+        cudaStatus = cudaMalloc((void **)&deviceReducedSum,
+                                dimCummulative * reducedLastDimShape * sizeof(T));
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("Memory allocation failed for tensor");
+        }
+
+        dim3 thread_per_blocks(THREADS);
+        dim3 thread_blocks(dimCummulative);
+        launchReduceSumLastAxisKernel<T>(deviceTensor, deviceReducedSum, thread_blocks,
+                                         thread_per_blocks, STRIDE, reducedLastDimShape);
+
+        cudaStatus = cudaGetLastError();
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("addKernel launch failed:  ");
+        }
+
+        // cudaDeviceSynchronize waits for the kernel to finish, and returns any errors encountered
+        // during the launch.
+        cudaStatus = cudaDeviceSynchronize();
+
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument(
+                "cudaDeviceSynchronize returned error after launching addKernel!");
+        }
+
+        cudaFree(deviceTensor);
+    }
+
+    // Copy output vector from GPU buffer to host memory.
+    cudaStatus = cudaMemcpy(reducedSum, deviceReducedSum, dimCummulative * sizeof(T),
+                            cudaMemcpyDeviceToHost);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument("cudaMemcpy failed!");
+    }
+    Tensor<T> result = Tensor<T>(reducedSum, newShape, tensor.dims - 1);
+
+    cudaFree(deviceReducedSum);
+    return result;
 }
