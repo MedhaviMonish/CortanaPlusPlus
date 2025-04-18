@@ -21,3 +21,33 @@ It is designed to explore the foundations of deep learning, custom GPU programmi
 
 > ⚙️ **Status:** Early development phase.  
 > 🛠️ **Planned:** Dense layers, matrix operations, and basic backpropagation.
+
+---
+
+### 🚀 Completed: Custom CUDA Addition & Reduction Kernels
+
+- Implemented elementwise tensor addition and scalar broadcasting using flat memory and memory-efficient chunking.
+- Developed a fully parallel kernel to reduce arbitrary N-D tensors along the last axis.
+- Handles large reductions in multiple stages using dynamic thread/block planning and staged accumulation.
+
+---
+
+### 🔢 Completed: Custom MatMul Kernel (Broadcasted Dot Product)
+
+- Implemented a parallel matmul kernel that performs input × weight projection across rows.
+- For each input vector, performs elementwise multiplication with every weight row and sums features to produce scalar outputs.
+- Avoids explicit loops using thread-block mappings that simulate projection behavior without memory overhead.
+- Serves as the foundation for Dense layer implementation and attention score computation.
+
+---
+
+### Row-major neuron layout — matches paper-style math and is easier to reason about.
+
+Weights are defined with shape `[M, D]`:
+- D = number of input features
+- M = number of output neurons
+- Each **row** represents one neuron's weights across all features.
+
+In contrast, PyTorch/TensorFlow use `[D, M]`:
+- Each **column** represents one neuron's weights (column-major layout)
+- Requires input @ weight multiplication: `[N, D] @ [D, M] = [N, M]`
