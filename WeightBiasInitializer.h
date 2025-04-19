@@ -17,8 +17,8 @@ template <typename T>
 std::pair<Tensor<T>, Tensor<T>> WeightBiasInitializer<T>::initWeightZeroes(int *shape, int dims)
 {
     Tensor<T> weight = Tensor<T>::getZeroes(shape, dims);
-    int biasDims[] = {shape[0], 1};
-    Tensor<T> bias = Tensor<T>::getZeroes(biasDims, 1);
+    int biasDims[] = {1, shape[0]};
+    Tensor<T> bias = Tensor<T>::getZeroes(biasDims, 2);
     return {weight, bias};
 }
 
@@ -26,8 +26,8 @@ template <typename T>
 std::pair<Tensor<T>, Tensor<T>> WeightBiasInitializer<T>::initWeightOnes(int *shape, int dims)
 {
     Tensor<T> weight = Tensor<T>::getOnes(shape, dims);
-    int biasDims[] = {shape[0], 1};
-    Tensor<T> bias = Tensor<T>::getOnes(biasDims, 1);
+    int biasDims[] = {1, shape[0]};
+    Tensor<T> bias = Tensor<T>::getOnes(biasDims, 2);
     return {weight, bias};
 }
 
@@ -36,8 +36,8 @@ std::pair<Tensor<T>, Tensor<T>> WeightBiasInitializer<T>::initWeightRandom(int *
 {
     static_assert(std::is_floating_point<T>::value, "T must be a float or double");
     Tensor<T> weight = Tensor<T>::getZeroes(shape, dims);
-    int biasDims[] = {shape[0], 1};
-    Tensor<T> bias = Tensor<T>::getZeroes(biasDims, 1);
+    int biasDims[] = {1, shape[0]};
+    Tensor<T> bias = Tensor<T>::getZeroes(biasDims, 2);
 
     int total = weight.getTotalSize();
     T *w_data = weight.getData();

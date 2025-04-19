@@ -1,6 +1,5 @@
 #pragma once
 #include "TensorKernels.cuh"
-#include <chrono>
 #include <iostream>
 #include <string>
 #define MAX_PRINT_THRESHOLD 1000
@@ -37,19 +36,19 @@ class Tensor
     Tensor<T> operator+(T value);
     Tensor<T> operator=(const Tensor<T> &other);
 
-    T *getData()
+    T *getData() const
     {
         return data;
     }
-    int *getShape()
+    int *getShape() const
     {
         return shape;
     }
-    int getDims()
+    int getDims() const
     {
         return dims;
     }
-    int getTotalSize()
+    int getTotalSize() const
     {
         return total_size;
     }
@@ -332,7 +331,6 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
     }
 
     int SUB_TOTAL_SIZE = (MAX_MEMORY_USAGE_BYTES) / sizeof(T);
-    std::cout << "MAX Subtotal size at start based on data type " << SUB_TOTAL_SIZE << endl;
     int i = 0;
     while (i < this->total_size)
     {
@@ -340,7 +338,6 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
         {
             SUB_TOTAL_SIZE = this->total_size - i;
         }
-        std::cout << "Subtotal size " << SUB_TOTAL_SIZE << endl;
 
         // Allocate GPU buffers for three vectors (two input, one output)    .
         cudaStatus = cudaMalloc((void **)&device_tensor_A, SUB_TOTAL_SIZE * sizeof(T));
@@ -370,7 +367,6 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
         {
             throw std::invalid_argument("cudaMemcpy failed!");
         }
-        auto start = std::chrono::high_resolution_clock::now();
 
         dim3 thread_per_blocks(THREADS_PER_BLOCK);
         dim3 thread_blocks((SUB_TOTAL_SIZE / THREADS_PER_BLOCK) + 1);
@@ -387,10 +383,6 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
         // cudaDeviceSynchronize waits for the kernel to finish, and returns
         // any errors encountered during the launch.
         cudaStatus = cudaDeviceSynchronize();
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-
-        std::cout << "Time taken: " << duration.count() << " ms" << endl;
 
         if (cudaStatus != cudaSuccess)
         {
@@ -595,7 +587,6 @@ Tensor<T> Tensor<T>::reduceSumLastAxis(const Tensor<T> &tensor)
         dimCummulative *= tensor.shape[i];
         newShape[i] = tensor.shape[i];
     }
-    std::cout << "Size before last dim " << dimCummulative << endl;
 
     int currentLastShape = tensor.shape[tensor.dims - 1];
     int THREADS = 4;

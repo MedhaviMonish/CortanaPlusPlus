@@ -43,5 +43,7 @@ Tensor<T> DenseLayer<T>::forward(Tensor<T> &input)
 {
     Tensor<T> output = Tensor<T>::matMul(input, this->weights);
     output = Tensor<T>::reduceSumLastAxis(output);
+    Tensor<T> tmp_bias = this->broadcastBias(this->bias, input.getShape()[0]);
+    output = output + tmp_bias;
     return output;
 }
