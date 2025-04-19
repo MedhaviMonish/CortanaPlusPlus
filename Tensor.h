@@ -1,7 +1,10 @@
 #pragma once
 #include "TensorKernels.cuh"
+#include <ctime>
 #include <iostream>
+#include <random>
 #include <string>
+
 #define MAX_PRINT_THRESHOLD 1000
 #define MIN_PRINT_THRESHOLD 6
 #define THREADS_PER_BLOCK 256
@@ -26,6 +29,7 @@ class Tensor
 
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
+    static Tensor<T> getRandom(int *shape, int dims);
     static Tensor<T> matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B);
     static Tensor<T> reduceSumLastAxis(Tensor<T> &tensor);
 
@@ -111,6 +115,24 @@ Tensor<T> Tensor<T>::getZeroes(int *shape, int dims)
     T *data = tensor.getData();
     std::fill(data, data + tensor.getTotalSize(), T(0));
     return tensor;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::getRandom(int *shape, int dims)
+{
+    static_assert(std::is_floating_point<T>::value, "T must be a float or double");
+    Tensor<T> array = Tensor<T>::getZeroes(shape, dims);
+
+    int total = array.getTotalSize();
+    T *a_data = array.getData();
+
+    std::default_random_engine engine(static_cast<unsigned>(std::time(0)));
+    std::uniform_real_distribution<T> dist(-0.1, 0.1);
+
+    for (int i = 0; i < total; ++i)
+        a_data[i] = dist(engine);
+
+    return array;
 }
 
 // Copy Constructor
