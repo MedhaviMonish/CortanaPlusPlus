@@ -84,3 +84,19 @@ void launchReduceSumLastAxisKernel(T *a, T *s, dim3 thread_blocks, dim3 thread_p
 {
     reduceSumLastAxisKernel<T><<<thread_blocks, thread_per_blocks>>>(a, s, stride, lastRowSize);
 }
+
+template <typename T>
+__global__ void maxScalarKernel(T *a, T value, int N)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < N)
+    {
+        a[i] = (a[i] > value) ? a[i] : value;
+    }
+}
+
+template <typename T>
+void launchMaxScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T value, int N)
+{
+    maxScalarKernel<T><<<thread_blocks, thread_per_blocks>>>(a, value, N);
+}

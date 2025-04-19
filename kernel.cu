@@ -20,10 +20,12 @@ int main()
   // Tensor<float> output = layer.forward(input);
   // cout << "Output" << endl;
   // cout << output.print() << endl;
-    int shape_input[] = {600};
-    Tensor<float> input = Tensor<float>::getOnes(shape_input, 1);
-    input = Tensor<float>::reduceSumLastAxis(input);
-    cout << "Input" << endl;
+    int shape_input[] = {12, 600};
+    DenseLayer<float> layer = DenseLayer<float>(shape_input, 2, Initialization::RANDOMS);
+
+    cout << layer.weights.print() << endl;
+
+    Tensor<float> input = layer.weights.max(0);
     cout << input.print() << endl;
 
     return 0;
