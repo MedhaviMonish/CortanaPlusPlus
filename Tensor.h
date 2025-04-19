@@ -23,6 +23,7 @@ class Tensor
     Tensor(T *data, int *shape, int dims);
     Tensor(const Tensor &other);
     ~Tensor();
+    Tensor() : data(nullptr), shape(nullptr), dims(0), total_size(0) {}
 
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
