@@ -27,7 +27,7 @@ class Tensor
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
     static Tensor<T> matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B);
-    static Tensor<T> reduceSumLastAxis(const Tensor<T> &tensor);
+    static Tensor<T> reduceSumLastAxis(Tensor<T> &tensor);
 
     std::string print();
     std::string print(std::string tensorStr, int dimIndex, int *dimCummulative, int INDEX);
@@ -577,8 +577,14 @@ Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B
 }
 
 template <typename T>
-Tensor<T> Tensor<T>::reduceSumLastAxis(const Tensor<T> &tensor)
+Tensor<T> Tensor<T>::reduceSumLastAxis(Tensor<T> &tensor)
 {
+    if (tensor.dims == 1)
+    {
+        // We simply add extra dim if it has only one dimension
+        int tmp[] = {1, tensor.shape[0]};
+        tensor.reshape(tmp, 2);
+    }
     int total_size = tensor.total_size;
     int dimCummulative = 1;
     int *newShape = new int[tensor.dims - 1];
@@ -667,6 +673,7 @@ Tensor<T> Tensor<T>::reduceSumLastAxis(const Tensor<T> &tensor)
 
     while (reducedLastDimShape > 1)
     {
+        currentLastShape = reducedLastDimShape;
         THREADS = 4;
         STRIDE = 2;
 
@@ -701,7 +708,7 @@ Tensor<T> Tensor<T>::reduceSumLastAxis(const Tensor<T> &tensor)
         dim3 thread_per_blocks(THREADS);
         dim3 thread_blocks(dimCummulative);
         launchReduceSumLastAxisKernel<T>(deviceTensor, deviceReducedSum, thread_blocks,
-                                         thread_per_blocks, STRIDE, reducedLastDimShape);
+                                         thread_per_blocks, STRIDE, currentLastShape);
 
         cudaStatus = cudaGetLastError();
         if (cudaStatus != cudaSuccess)

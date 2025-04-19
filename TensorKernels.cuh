@@ -60,8 +60,17 @@ template <typename T>
 __global__ void reduceSumLastAxisKernel(T *a, T *s, int stride, int lastRowSize)
 {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int limit;
+    if (threadIdx.x == blockDim.x - 1)
+    {
+        limit = lastRowSize - threadIdx.x * stride;
+    }
+    else
+    {
+        limit = stride;
+    }
     int i = blockIdx.x * lastRowSize + threadIdx.x * stride;
-    int end = i + (stride > lastRowSize ? lastRowSize : stride);
+    int end = i + limit;
     s[j] = 0;
     for (; i < end; ++i)
     {
