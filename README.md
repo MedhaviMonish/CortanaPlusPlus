@@ -38,7 +38,13 @@ It is designed to explore the foundations of deep learning, custom GPU programmi
 - For each input vector, performs elementwise multiplication with every weight row and sums features to produce scalar outputs.
 - Avoids explicit loops using thread-block mappings that simulate projection behavior without memory overhead.
 - Serves as the foundation for Dense layer implementation and attention score computation.
-
+- Implemented `DenseLayer` with full forward pass: `y = Wx + b`
+- Added internal bias broadcasting (from `[1, M]` to `[N, M]`)
+- Integrated optional activation handling: supports `Linear` and `ReLU`
+- Created `Tensor::max`, `min`, and `clamp` methods for elementwise ops
+- Implemented `ReLU` using `max(0)`
+- Built and tested full end-to-end forward execution from input → matmul → bias → activation
+- Added support for generating random tensors for testing and experimentation
 ---
 
 ### Row-major neuron layout — matches paper-style math and is easier to reason about.

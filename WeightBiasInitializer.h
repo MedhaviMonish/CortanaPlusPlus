@@ -35,22 +35,8 @@ template <typename T>
 std::pair<Tensor<T>, Tensor<T>> WeightBiasInitializer<T>::initWeightRandom(int *shape, int dims)
 {
     static_assert(std::is_floating_point<T>::value, "T must be a float or double");
-    Tensor<T> weight = Tensor<T>::getZeroes(shape, dims);
+    Tensor<T> weight = Tensor<T>::getRandom(shape, dims);
     int biasDims[] = {1, shape[0]};
-    Tensor<T> bias = Tensor<T>::getZeroes(biasDims, 2);
-
-    int total = weight.getTotalSize();
-    T *w_data = weight.getData();
-    T *b_data = bias.getData();
-
-    std::default_random_engine engine(static_cast<unsigned>(std::time(0)));
-    std::uniform_real_distribution<T> dist(-0.1, 0.1);
-
-    for (int i = 0; i < total; ++i)
-        w_data[i] = dist(engine);
-
-    for (int i = 0; i < shape[0]; ++i)
-        b_data[i] = dist(engine);
-
+    Tensor<T> bias = Tensor<T>::getRandom(biasDims, 2);
     return {weight, bias};
 }
