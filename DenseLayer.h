@@ -1,4 +1,5 @@
 #pragma once
+#include "Activation.h"
 #include "BaseLayer.h"
 #include "Tensor.h"
 #include "WeightBiasInitializer.h"
@@ -14,11 +15,13 @@ template <typename T>
 class DenseLayer : public BaseLayer<T>
 {
   public:
-    DenseLayer<T>(int *shape, int dims, Initialization init = Initialization::RANDOMS);
+    ACTIVATION activation;
+    DenseLayer<T>(int *shape, int dims, ACTIVATION activation = ACTIVATION::Linear,
+                  Initialization init = Initialization::RANDOMS);
     Tensor<T> forward(Tensor<T> &input);
 };
 template <typename T>
-DenseLayer<T>::DenseLayer(int *shape, int dims, Initialization init)
+DenseLayer<T>::DenseLayer(int *shape, int dims, ACTIVATION activation, Initialization init)
 {
     std::pair<Tensor<T>, Tensor<T>> pair;
 
@@ -36,6 +39,7 @@ DenseLayer<T>::DenseLayer(int *shape, int dims, Initialization init)
     }
     this->weights = pair.first;
     this->bias = pair.second;
+    this->activation = activation;
 }
 
 template <typename T>
@@ -45,5 +49,12 @@ Tensor<T> DenseLayer<T>::forward(Tensor<T> &input)
     output = Tensor<T>::reduceSumLastAxis(output);
     Tensor<T> tmp_bias = this->broadcastBias(this->bias, input.getShape()[0]);
     output = output + tmp_bias;
-    return output;
+    if (this->activation == ACTIVATION::ReLU)
+    {
+        return Activation<T>::ReLU(output);
+    }
+    else
+    {
+        return output;
+    }
 }

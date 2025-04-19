@@ -81,6 +81,7 @@
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Activation.h" />
     <ClInclude Include="BaseLayer.h" />
     <ClInclude Include="DenseLayer.h" />
     <ClInclude Include="doctest.h" />
