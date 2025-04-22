@@ -11,7 +11,7 @@ int main()
     Tensor<float> input = Tensor<float>::getRandom(shape_input, 2);
     cout << "Input" << endl;
     cout << input.print() << endl;
-    DenseLayer<float> layer = DenseLayer<float>(shape_weight, 2, ACTIVATION::Linear);
+    DenseLayer<float> layer = DenseLayer<float>(6, 2, ACTIVATION::Linear);
     cout << "weights" << endl;
     cout << layer.weights.print() << endl;
     cout << "Bias" << endl;

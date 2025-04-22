@@ -16,13 +16,19 @@ class DenseLayer : public BaseLayer<T>
 {
   public:
     ACTIVATION activation;
-    DenseLayer<T>(int *shape, int dims, ACTIVATION activation = ACTIVATION::Linear,
+    DenseLayer<T>(int input_size, int output_size, ACTIVATION activation = ACTIVATION::Linear,
                   Initialization init = Initialization::RANDOMS);
+
     Tensor<T> forward(Tensor<T> &input);
 };
 template <typename T>
-DenseLayer<T>::DenseLayer(int *shape, int dims, ACTIVATION activation, Initialization init)
+DenseLayer<T>::DenseLayer(int input_size, int output_size, ACTIVATION activation,
+                          Initialization init)
 {
+    // Input is the features which is treated as columns
+    // Output is the number of neurons since we follow paper style weights and neurons
+    int shape[] = {output_size, input_size};
+    int dims = 2;
     std::pair<Tensor<T>, Tensor<T>> pair;
 
     if (init == Initialization::ZEROES)
