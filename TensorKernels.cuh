@@ -99,6 +99,38 @@ void launchMultiplyScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks
 }
 
 template <typename T>
+__global__ void divKernel(T *a, const T *b, int N)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < N)
+    {
+        a[i] = a[i] / b[i];
+    }
+}
+
+template <typename T>
+void launchDivKernel(T *a, const T *b, dim3 thread_blocks, dim3 thread_per_blocks, int total_size)
+{
+    divKernel<T><<<thread_blocks, thread_per_blocks>>>(a, b, total_size);
+}
+
+template <typename T>
+__global__ void divScalarKernel(T *a, T value, int N)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < N)
+    {
+        a[i] = a[i] / value;
+    }
+}
+
+template <typename T>
+void launchDivScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T value, int N)
+{
+    divScalarKernel<T><<<thread_blocks, thread_per_blocks>>>(a, value, N);
+}
+
+template <typename T>
 __global__ void matMulKernel(const T *a, const T *b, T *c)
 {
     // Custom CUDA kernel for broadcasted elementwise matmul without loops
