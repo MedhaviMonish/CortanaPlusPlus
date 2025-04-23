@@ -682,6 +682,183 @@ Tensor<T> Tensor<T>::operator-(T value)
 }
 
 template <typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T> &other)
+{
+    if (this->dims != other.dims || this->total_size != other.total_size)
+    {
+        throw std::invalid_argument("Shape/Size mismatch for tensor addition.");
+    }
+
+    for (int i = 0; i < this->dims; ++i)
+    {
+        if (this->shape[i] != other.shape[i])
+        {
+            throw std::invalid_argument(
+                "Shape mismatch: Tensors must have the same shape to perform first operation.");
+        }
+    }
+
+    T *device_tensor_A = nullptr;
+    T *device_tensor_B = nullptr;
+    T *host_data = new T[this->total_size];
+
+    cudaError_t cudaStatus;
+
+    // Choosing first GPU to run.
+    cudaStatus = cudaSetDevice(0);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+    }
+
+    int SUB_TOTAL_SIZE = (MAX_MEMORY_USAGE_BYTES) / sizeof(T);
+    int i = 0;
+    while (i < this->total_size)
+    {
+        if (i + SUB_TOTAL_SIZE > this->total_size)
+        {
+            SUB_TOTAL_SIZE = this->total_size - i;
+        }
+
+        // Allocate GPU buffers for three vectors (two input, one output)    .
+        cudaStatus = cudaMalloc((void **)&device_tensor_A, SUB_TOTAL_SIZE * sizeof(T));
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMalloc failed!");
+        }
+
+        cudaStatus = cudaMalloc((void **)&device_tensor_B, SUB_TOTAL_SIZE * sizeof(T));
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMalloc failed!");
+        }
+
+        // Copy input vectors from host memory to GPU buffers.
+        cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
+                                cudaMemcpyHostToDevice);
+        std::cout << "CudaStatus " << cudaStatus << endl;
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMemcpy failed!");
+        }
+
+        cudaStatus = cudaMemcpy(device_tensor_B, &other.data[i], SUB_TOTAL_SIZE * sizeof(T),
+                                cudaMemcpyHostToDevice);
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMemcpy failed!");
+        }
+
+        dim3 thread_per_blocks(THREADS_PER_BLOCK);
+        dim3 thread_blocks((SUB_TOTAL_SIZE / THREADS_PER_BLOCK) + 1);
+
+        launchMultiplyKernel<T>(device_tensor_A, device_tensor_B, thread_blocks, thread_per_blocks,
+                                SUB_TOTAL_SIZE);
+
+        cudaStatus = cudaGetLastError();
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("addKernel launch failed:  ");
+        }
+
+        // cudaDeviceSynchronize waits for the kernel to finish, and returns
+        // any errors encountered during the launch.
+        cudaStatus = cudaDeviceSynchronize();
+
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument(
+                "cudaDeviceSynchronize returned error after launching addKernel!");
+        }
+
+        // Copy output vector from GPU buffer to host memory.
+        cudaStatus = cudaMemcpy(&host_data[i], device_tensor_A, SUB_TOTAL_SIZE * sizeof(T),
+                                cudaMemcpyDeviceToHost);
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMemcpy failed!");
+        }
+        i += SUB_TOTAL_SIZE;
+        cudaFree(device_tensor_A);
+        cudaFree(device_tensor_B);
+    }
+
+    return Tensor<T>(host_data, this->shape, this->dims);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::operator*(T value)
+{
+    T *device_tensor_A = nullptr;
+    T *host_scalar = new T[this->total_size];
+    cudaError_t cudaStatus;
+
+    cudaStatus = cudaSetDevice(0);
+    if (cudaStatus != cudaSuccess)
+    {
+        throw std::invalid_argument(
+            "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
+    }
+
+    int SUB_TOTAL_SIZE = (MAX_MEMORY_USAGE_BYTES) / sizeof(T);
+    // std::cout << "MAX Subtotal size at start based on data type " << SUB_TOTAL_SIZE << endl;
+    int i = 0;
+    while (i < this->total_size)
+    {
+        if (i + SUB_TOTAL_SIZE > this->total_size)
+        {
+            SUB_TOTAL_SIZE = this->total_size - i;
+        }
+        // std::cout << "Subtotal size " << SUB_TOTAL_SIZE << endl;
+
+        cudaStatus = cudaMalloc((void **)&device_tensor_A, SUB_TOTAL_SIZE * sizeof(T));
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMalloc failed!");
+        }
+        // Copy input vectors from host memory to GPU buffers.
+        cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
+                                cudaMemcpyHostToDevice);
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMemcpy failed!");
+        }
+
+        dim3 thread_per_blocks(THREADS_PER_BLOCK);
+        dim3 thread_blocks((SUB_TOTAL_SIZE / THREADS_PER_BLOCK) + 1);
+
+        launchMultiplyScalarKernel<T>(device_tensor_A, thread_blocks, thread_per_blocks, value,
+                                      SUB_TOTAL_SIZE);
+
+        cudaStatus = cudaGetLastError();
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("addKernel launch failed:  ");
+        }
+
+        cudaStatus = cudaDeviceSynchronize();
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument(
+                "cudaDeviceSynchronize returned error after launching addKernel!");
+        }
+
+        cudaStatus = cudaMemcpy(&host_scalar[i], device_tensor_A, SUB_TOTAL_SIZE * sizeof(T),
+                                cudaMemcpyDeviceToHost);
+        if (cudaStatus != cudaSuccess)
+        {
+            throw std::invalid_argument("cudaMemcpy failed!");
+        }
+        i += SUB_TOTAL_SIZE;
+        cudaFree(device_tensor_A);
+    }
+    int *newShape = new int[this->dims];
+    std::memcpy(newShape, this->shape, this->dims * sizeof(int));
+    return Tensor<T>(host_scalar, newShape, this->dims);
+}
+
+template <typename T>
 Tensor<T> Tensor<T>::matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B)
 {
 
