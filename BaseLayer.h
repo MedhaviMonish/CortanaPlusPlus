@@ -11,6 +11,7 @@ class BaseLayer
     Tensor<T> bias;
 
     BaseLayer() = default;
+    virtual Tensor<T> forward(Tensor<T> &input) = 0;
 };
 
 template <typename T>
