@@ -50,6 +50,22 @@ void launchAddScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T v
 }
 
 template <typename T>
+__global__ void subScalarKernel(T *a, T value, int N)
+{
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < N)
+    {
+        a[i] = a[i] - value;
+    }
+}
+
+template <typename T>
+void launchSubScalarKernel(T *a, dim3 thread_blocks, dim3 thread_per_blocks, T value, int N)
+{
+    subScalarKernel<T><<<thread_blocks, thread_per_blocks>>>(a, value, N);
+}
+
+template <typename T>
 __global__ void matMulKernel(const T *a, const T *b, T *c)
 {
     // Custom CUDA kernel for broadcasted elementwise matmul without loops
