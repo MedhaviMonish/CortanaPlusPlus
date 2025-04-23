@@ -14,7 +14,7 @@ class SequentialModel : public Model<T>
     SequentialModel(std::initializer_list<BaseLayer<T> *> layer_array);
 
     Tensor<T> forward(const Tensor<T> &input);
-    void add(BaseLayer<T> &layer);
+    SequentialModel<T> &add(BaseLayer<T> *layer);
 };
 
 template <typename T>
@@ -37,7 +37,8 @@ Tensor<T> SequentialModel<T>::forward(const Tensor<T> &input)
 }
 
 template <typename T>
-void SequentialModel<T>::add(BaseLayer<T> &layer)
+SequentialModel<T> &SequentialModel<T>::add(BaseLayer<T> *layer)
 {
-    this->layers.push_back(&layer);
+    this->layers.push_back(layer);
+    return *this;
 }
