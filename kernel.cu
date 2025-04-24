@@ -14,8 +14,8 @@ int main()
     cout << "Input" << endl;
     cout << input.print() << endl;
     SequentialModel<float> model;
-    model.add(new DenseLayer<float>(6, 1, ACTIVATION::Linear))
-        .add(new DenseLayer<float>(1, 6, ACTIVATION::Linear, INITIALIZATION::ONES));
+    model.add(new DenseLayer<float>(6, 10, ACTIVATION::Linear, INITIALIZATION::ONES))
+        .add(new DenseLayer<float>(10, 6, ACTIVATION::Linear, INITIALIZATION::ONES));
 
     cout << model.summary();
 

@@ -60,7 +60,7 @@ std::string SequentialModel<T>::summary()
     for (BaseLayer<T> *layer : this->layers)
     {
         oss << layer->summary();
-        params += layer->weights.getTotalSize() + layer->bias.getTotalSize();
+        params += layer->getParams();
     }
     oss << "___________________________________________________________" << endl;
     oss << "Total Parameters " << params << endl;

@@ -13,12 +13,17 @@ class BaseLayer
     Tensor<T> bias;
     ACTIVATION activation;
     INITIALIZATION initialization;
+    int params;
 
     BaseLayer() = default;
     virtual Tensor<T> forward(Tensor<T> &input) = 0;
     virtual std::string summary() = 0;
     std::string activationToString(ACTIVATION a);
     std::string initToString(INITIALIZATION i);
+    int getParams()
+    {
+        return params;
+    };
 };
 
 template <typename T>

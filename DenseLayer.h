@@ -44,6 +44,7 @@ DenseLayer<T>::DenseLayer(int input_size, int output_size, ACTIVATION activation
     this->initialization = init;
     this->input_size = input_size;
     this->output_size = output_size;
+    this->params = this->weights.getTotalSize() + this->bias.getTotalSize();
 }
 
 template <typename T>
