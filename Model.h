@@ -13,4 +13,6 @@ class Model
     virtual ~Model() = default;
     virtual Tensor<T> forward(const Tensor<T> &input) = 0;
     virtual Model<T> &add(BaseLayer<T> *layer) = 0;
+    virtual std::vector<BaseLayer<T> *> getLayers() = 0;
+    virtual std::string summary() = 0;
 };

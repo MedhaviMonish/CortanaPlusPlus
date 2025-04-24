@@ -17,8 +17,7 @@ int main()
     model.add(new DenseLayer<float>(6, 1, ACTIVATION::Linear))
         .add(new DenseLayer<float>(1, 6, ACTIVATION::Linear, INITIALIZATION::ONES));
 
-    std::vector<BaseLayer<float> *> layers = model.getLayers();
-    cout << layers[0]->summary();
+    cout << model.summary();
 
     Tensor<float> output = model.forward(input);
     cout << "Model Output" << endl;
