@@ -9,11 +9,17 @@ using namespace std;
 int main()
 { // ======== Test Input Setup for Broadcasted Elementwise MatMul ========
     int shape_input[] = {1, 6};
-    Tensor<float> input = Tensor<float>::getRandom(shape_input, 2);
-    // BaseLayer<float> *layers[];
+    int choice[] = {1, 0};
+    Tensor<float> input = Tensor<float>::getRandom(shape_input, 2, choice, 2);
+    cout << "Input" << endl;
+    cout << input.print() << endl;
     SequentialModel<float> model;
     model.add(new DenseLayer<float>(6, 1, ACTIVATION::Linear))
-        .add(new DenseLayer<float>(1, 6, ACTIVATION::Linear, Initialization::ONES));
+        .add(new DenseLayer<float>(1, 6, ACTIVATION::Linear, INITIALIZATION::ONES));
+
+    std::vector<BaseLayer<float> *> layers = model.getLayers();
+    cout << layers[0]->summary();
+
     Tensor<float> output = model.forward(input);
     cout << "Model Output" << endl;
     int shape[] = {6, 1};
