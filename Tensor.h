@@ -30,6 +30,7 @@ class Tensor
     static Tensor<T> getOnes(int *shape, int dims);
     static Tensor<T> getZeroes(int *shape, int dims);
     static Tensor<T> getRandom(int *shape, int dims);
+    static Tensor<T> getRandom(int *shape, int dims, const int *choices, int choice_size);
     static Tensor<T> matMul(const Tensor<T> &tensor_A, const Tensor<T> &tensor_B);
     static Tensor<T> reduceSumLastAxis(Tensor<T> &tensor);
 
@@ -139,6 +140,22 @@ Tensor<T> Tensor<T>::getRandom(int *shape, int dims)
 
     for (int i = 0; i < total; ++i)
         a_data[i] = dist(engine);
+
+    return array;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::getRandom(int *shape, int dims, const int *choices, int choice_size)
+{
+    Tensor<T> array = Tensor<T>::getZeroes(shape, dims);
+    int total = array.getTotalSize();
+    T *a_data = array.getData();
+
+    std::default_random_engine engine(static_cast<unsigned>(std::time(0)));
+    std::uniform_int_distribution<int> dist(0, choice_size - 1);
+
+    for (int i = 0; i < total; ++i)
+        a_data[i] = choices[dist(engine)];
 
     return array;
 }
