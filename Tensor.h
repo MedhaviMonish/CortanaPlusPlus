@@ -403,7 +403,6 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T> &other)
         // Copy input vectors from host memory to GPU buffers.
         cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
                                 cudaMemcpyHostToDevice);
-        std::cout << "CudaStatus " << cudaStatus << endl;
         if (cudaStatus != cudaSuccess)
         {
             throw std::invalid_argument("cudaMemcpy failed!");
@@ -580,7 +579,6 @@ Tensor<T> Tensor<T>::operator-(const Tensor<T> &other)
         // Copy input vectors from host memory to GPU buffers.
         cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
                                 cudaMemcpyHostToDevice);
-        std::cout << "CudaStatus " << cudaStatus << endl;
         if (cudaStatus != cudaSuccess)
         {
             throw std::invalid_argument("cudaMemcpy failed!");
@@ -757,7 +755,6 @@ Tensor<T> Tensor<T>::operator*(const Tensor<T> &other)
         // Copy input vectors from host memory to GPU buffers.
         cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
                                 cudaMemcpyHostToDevice);
-        std::cout << "CudaStatus " << cudaStatus << endl;
         if (cudaStatus != cudaSuccess)
         {
             throw std::invalid_argument("cudaMemcpy failed!");
@@ -934,7 +931,6 @@ Tensor<T> Tensor<T>::operator/(const Tensor<T> &other)
         // Copy input vectors from host memory to GPU buffers.
         cudaStatus = cudaMemcpy(device_tensor_A, &this->data[i], SUB_TOTAL_SIZE * sizeof(T),
                                 cudaMemcpyHostToDevice);
-        std::cout << "CudaStatus " << cudaStatus << endl;
         if (cudaStatus != cudaSuccess)
         {
             throw std::invalid_argument("cudaMemcpy failed!");
