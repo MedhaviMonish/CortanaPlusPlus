@@ -53,17 +53,17 @@ template <typename T>
 std::string SequentialModel<T>::summary()
 {
     std::ostringstream oss;
-    int params = 0;
+    int num_params = 0;
     oss << "===========================================================" << endl;
     oss << "Total Layers " << this->layers.size() << endl;
     oss << "___________________________________________________________" << endl;
     for (BaseLayer<T> *layer : this->layers)
     {
         oss << layer->summary();
-        params += layer->getParams();
+        num_params += layer->getParams();
     }
     oss << "___________________________________________________________" << endl;
-    oss << "Total Parameters " << params << endl;
+    oss << "Total Parameters " << num_params << endl;
     oss << "===========================================================" << endl;
     return oss.str();
 }

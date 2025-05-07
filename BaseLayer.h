@@ -20,7 +20,7 @@ class BaseLayer
     Tensor<T> bias;
     ACTIVATION activation;
     INITIALIZATION initialization;
-    int params;
+    int num_params;
 
     BaseLayer() = default;
     virtual Tensor<T> forward(Tensor<T> &input) = 0;
@@ -29,7 +29,7 @@ class BaseLayer
     std::string initToString(INITIALIZATION i);
     int getParams()
     {
-        return params;
+        return num_params;
     };
 };
 
