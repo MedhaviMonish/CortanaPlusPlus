@@ -1,13 +1,6 @@
 #pragma once
 #include "Tensor.h"
 
-enum INITIALIZATION
-{
-    ZEROES = 0,
-    ONES = 1,
-    RANDOMS = 2,
-};
-
 enum ACTIVATION
 {
     Linear = 0,
