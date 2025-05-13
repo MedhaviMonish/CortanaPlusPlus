@@ -8,26 +8,25 @@ using namespace std;
 
 int main()
 { // ======== Test Input Setup for Broadcasted Elementwise MatMul ========
-    int shape_input[] = {1, 6};
+    int shape_input[] = {2, 6};
     int choice[] = {1, 0};
-    Tensor<float> input = Tensor<float>::getRandom(shape_input, 2, choice, 2);
+    Tensor<float> input = Tensor<float>::getOnes(shape_input, 2);
     cout << "Input" << endl;
     cout << input.print() << endl;
     SequentialModel<float> model;
-    model.add(new DenseLayer<float>(6, 10, ACTIVATION::Linear, INITIALIZATION::ONES))
-        .add(new DenseLayer<float>(10, 6, ACTIVATION::Linear, INITIALIZATION::ONES));
+    model.add(new DenseLayer<float>(6, 1, ACTIVATION::Linear, INITIALIZATION::ONES))
+        .add(new DenseLayer<float>(1, 2, ACTIVATION::Linear, INITIALIZATION::ONES));
 
     cout << model.summary();
 
     Tensor<float> output = model.forward(input);
     cout << "Model Output" << endl;
-    int shape[] = {6, 1};
-    output.reshape(shape, 2);
-    input.reshape(shape, 2);
+    int shape[] = {2, 2};
+    Tensor<float> target = Tensor<float>::getOnes(shape, 2);
+    cout << "output.print() " << endl;
     cout << output.print() << endl;
-    cout << "Input" << endl;
-    cout << input.print() << endl;
-    cout << (Loss<float>::MSE(input, output)).print();
+    cout << "Loss" << endl;
+    cout << (Loss<float>::MSE(target, output)).print();
 
     return 0;
 }

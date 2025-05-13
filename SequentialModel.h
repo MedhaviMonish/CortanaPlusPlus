@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BaseLayer.h"
+#include "DenseLayer.h"
 #include "Model.h"
 
 template <typename T>
@@ -32,6 +33,17 @@ Tensor<T> SequentialModel<T>::forward(const Tensor<T> &input)
     {
         // assumes BaseLayer<T> has virtual Tensor<T> forward(const Tensor<T>&)
         out = layer->forward(out);
+        if (DenseLayer<T> *dense = dynamic_cast<DenseLayer<T> *>(layer))
+        {
+            std::cout << "dense->summary.print()" << endl;
+            std::cout << dense->summary() << endl;
+            std::cout << "dense->weights.print()" << endl;
+            std::cout << dense->weights.print();
+            std::cout << "dense->bias.print()" << endl;
+            std::cout << dense->bias.print();
+        }
+        std::cout << "Intermediate output" << endl;
+        std::cout << out.print() << endl;
     }
     return out;
 }

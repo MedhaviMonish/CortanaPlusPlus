@@ -11,6 +11,15 @@
 #define MAX_MEMORY_USAGE_BYTES 256 * 1024 * 1024
 // 1024 *1024 *1024  = 1 GB 1073741824
 
+enum OPERATION
+{
+    ADD = 0,
+    SUB = 1,
+    MUL = 2,
+    DIV = 3,
+    POW = 4,
+};
+
 template <typename T>
 class Tensor
 {
@@ -20,6 +29,8 @@ class Tensor
     int dims;
     int total_size;
     Tensor(int *shape, int dims);
+    OPERATION grad_fn;
+    bool requires_grad;
 
   public:
     Tensor(T *data, int *shape, int dims);
